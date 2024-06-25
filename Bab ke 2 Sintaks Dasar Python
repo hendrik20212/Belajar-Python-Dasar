@@ -1,0 +1,93 @@
+Berikut adalah materi pembelajaran untuk Bab 2: **Sintaks Dasar Python**. 
+
+### Bab 2: Sintaks Dasar Python
+
+#### 1. Struktur Dasar Program Python
+   - **Definisi**: Setiap program Python terdiri dari berbagai pernyataan yang diurutkan secara logis.
+   - **Penulisan Pernyataan**: Setiap pernyataan diakhiri dengan baris baru.
+   - **Contoh**:
+     ```python
+     print("Hello, World!")
+     x = 5
+     y = 10
+     print(x + y)
+     ```
+
+#### 2. Komentar
+   - **Komentar Satu Baris**: Menggunakan tanda `#` di awal komentar.
+     - **Contoh**:
+       ```python
+       # Ini adalah komentar satu baris
+       print("Hello, World!")
+       ```
+   - **Komentar Multibaris**: Menggunakan tanda kutip tiga (`'''` atau `"""`) di awal dan akhir komentar.
+     - **Contoh**:
+       ```python
+       """
+       Ini adalah komentar
+       multi baris
+       """
+       print("Hello, World!")
+       ```
+
+#### 3. Statement dan Ekspresi
+   - **Statement**: Instruksi yang dieksekusi oleh Python (misalnya, `print`, `x = 5`).
+   - **Ekspresi**: Kombinasi variabel, operator, dan nilai yang dievaluasi menjadi satu nilai (misalnya, `x + y`).
+
+#### 4. Indentasi dan Blok Kode
+   - **Indentasi**: Digunakan untuk mendefinisikan blok kode. Python menggunakan indentasi (spasi atau tab) untuk menentukan hierarki blok.
+   - **Contoh**:
+     ```python
+     if x > 0:
+         print("x adalah positif")
+         if x > 10:
+             print("x lebih besar dari 10")
+     ```
+   - **Aturan**:
+     - Semua pernyataan dalam satu blok harus memiliki level indentasi yang sama.
+     - Indentasi yang salah akan menghasilkan kesalahan sintaks.
+
+#### 5. Praktik dan Contoh
+   - **Contoh 1**: Struktur Program Dasar
+     ```python
+     # Program ini menjumlahkan dua angka dan mencetak hasilnya
+     a = 5
+     b = 10
+     sum = a + b
+     print("Jumlah:", sum)
+     ```
+
+   - **Contoh 2**: Penggunaan Komentar
+     ```python
+     # Menghitung luas persegi panjang
+     panjang = 15  # panjang persegi panjang
+     lebar = 10    # lebar persegi panjang
+     luas = panjang * lebar
+     print("Luas persegi panjang:", luas)
+     ```
+
+   - **Contoh 3**: Penggunaan Indentasi
+     ```python
+     angka = 7
+     if angka > 0:
+         print("Angka positif")
+         if angka % 2 == 0:
+             print("Angka genap")
+         else:
+             print("Angka ganjil")
+     ```
+
+#### 6. Latihan
+   - **Latihan 1**: Buat program yang mencetak "Selamat pagi!" jika jam lebih kecil dari 12, dan "Selamat sore!" jika jam lebih besar atau sama dengan 12.
+   - **Latihan 2**: Tambahkan komentar ke program berikut untuk menjelaskan setiap langkah.
+     ```python
+     name = "Alice"
+     age = 25
+     print("Nama:", name)
+     print("Usia:", age)
+     ```
+
+### Kesimpulan
+Pada bab ini, kita telah mempelajari struktur dasar program Python, cara menulis komentar, memahami statement dan ekspresi, serta pentingnya indentasi dalam menentukan blok kode. Memahami sintaks dasar ini adalah langkah awal yang penting dalam belajar Python dan pemrograman secara umum.
+
+Terus berlatih menulis dan membaca kode untuk memperdalam pemahaman Anda tentang sintaks dasar Python.
