@@ -3,6 +3,7 @@ import time
 import threading
 import requests
 import pyexcel as pe
+import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv, set_key
 from selenium import webdriver
@@ -356,6 +357,64 @@ def zlogix_navigate_and_download(driver, wait, download_dir):
 
     return file_path
 
+def parse_and_upload_to_firebase(xlsx_file_path, db):
+    log("Memulai parsing & upload ke Firebase...")
+    init_firebase()
+    try:
+        # Baca tanpa header
+        df_all = pd.read_excel(xlsx_file_path, header=None)
+        # Cari baris header secara dinamis (yang mengandung "Job No", case-insensitive)
+        header_row_idx = None
+        for i, row in df_all.iterrows():
+            if any(str(cell).strip().lower() == "job no" for cell in row):
+                header_row_idx = i
+                break
+        if header_row_idx is None:
+            log("Header 'Job No' tidak ditemukan di file Excel.", level="ERROR")
+            return
+
+        # Baca ulang dengan header di baris yang ditemukan
+        df = pd.read_excel(xlsx_file_path, header=header_row_idx)
+        # Pastikan kolom ada
+        required_cols = ["Job No", "Delivery Date", "Delivery Note", "Remark", "Plan Qty", "Status"]
+        for col in required_cols:
+            if col not in df.columns:
+                log(f"Kolom '{col}' tidak ditemukan di file Excel.", level="ERROR")
+                return
+
+        upload_count = 0
+        error_count = 0
+        for idx, row in df.iterrows():
+            jobNo = str(row.get("Job No", "")).strip()
+            if not jobNo or any(c in jobNo for c in '.#$[]'):
+                continue # skip invalid jobNo
+
+            job = {
+                "jobNo": jobNo,
+                "deliveryDate": str(row.get("Delivery Date", "")).strip(),
+                "deliveryNote": str(row.get("Delivery Note", "")).strip(),
+                "remark": str(row.get("Remark", "")).strip(),
+                "qty": str(row.get("Plan Qty", "")).strip(),
+                "status": str(row.get("Status", "")).strip(),
+                # berikut 4 field agar kompatibel dengan frontend assignment
+                "team": "",
+                "jobType": "",
+                "shift": "",
+                "teamName": ""
+            }
+            # Tambahkan finishedAt jika status memenuhi syarat
+            if job["status"].lower() in ["packed", "loaded", "completed"]:
+                job["finishedAt"] = datetime.utcnow().isoformat()
+            try:
+                db.reference(f'PhxOutboundJobs/{jobNo}').set(job)
+                upload_count += 1
+            except Exception as e:
+                error_count += 1
+                log(f"Gagal upload job {jobNo}: {e}", level="ERROR")
+        log(f"Parsing & upload ke Firebase selesai. Berhasil: {upload_count}, Gagal: {error_count}", level="SUCCESS")
+    except Exception as e:
+        log(f"Gagal parsing/upload ke Firebase: {e}", level="ERROR")
+
 def webapp_login_and_upload(driver, wait, url, user, pw, file_path):
     log("Membuka halaman Outbound Monitoring Control...")
     driver.get(url)
@@ -418,8 +477,12 @@ def run_bot():
         wait = WebDriverWait(driver, 15)
         zlogix_login(driver, wait, config["ZLOGIX_URL"], config["ZLOGIX_USERNAME"], config["ZLOGIX_PASSWORD"])
         file_path = zlogix_navigate_and_download(driver, wait, config["DOWNLOAD_DIR"])
+        xlsx_file_path = file_path.replace('.xls', '.xlsx')
+        parse_and_upload_to_firebase(xlsx_file_path, db)
         webapp_login_and_upload(driver, wait, config["WEBAPP_URL"], config["WEBAPP_USERID"], config["WEBAPP_PASSWORD"], file_path)
         delete_file(file_path)
+        if os.path.exists(xlsx_file_path):
+            delete_file(xlsx_file_path)
         driver.quit()
         stats.record_success()
         log("Proses selesai.", level="SUCCESS")
