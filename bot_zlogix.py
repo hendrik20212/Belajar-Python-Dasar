@@ -2,6 +2,7 @@ import os
 import time
 import threading
 import requests
+import pyexcel as pe
 from datetime import datetime
 from dotenv import load_dotenv, set_key
 from selenium import webdriver
@@ -278,7 +279,7 @@ def load_config():
         "WEBAPP_URL": os.getenv("WEBAPP_URL"),
         "WEBAPP_USERID": os.getenv("WEBAPP_USERID"),
         "WEBAPP_PASSWORD": os.getenv("WEBAPP_PASSWORD"),
-        "DOWNLOAD_DIR": r"C:\\Users\\Administrator\\Downloads"
+        "DOWNLOAD_DIR": r"C:\\Users\\Rizki Aldiansyah\\Downloads"
     }
     for key, value in config.items():
         if not value:
@@ -344,6 +345,15 @@ def zlogix_navigate_and_download(driver, wait, download_dir):
     with open(file_path, "wb") as f:
         f.write(response.content)
     log(f"Data source berhasil di-download: {file_path}")
+
+    # Konversi XLS ke XLSX
+    xlsx_file_path = file_path.replace('.xls', '.xlsx')
+    try:
+        pe.save_book_as(file_name=file_path, dest_file_name=xlsx_file_path)
+        log(f"File berhasil dikonversi ke: {xlsx_file_path}")
+    except Exception as e:
+        log(f"Gagal konversi file xls ke xlsx: {e}", level="ERROR")
+
     return file_path
 
 def webapp_login_and_upload(driver, wait, url, user, pw, file_path):
