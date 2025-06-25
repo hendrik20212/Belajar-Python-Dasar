@@ -1,3 +1,4 @@
+# "C:\\Users\\Rizki Aldiansyah\\Downloads"
 import os
 import time
 import threading
@@ -280,7 +281,7 @@ def load_config():
         "WEBAPP_URL": os.getenv("WEBAPP_URL"),
         "WEBAPP_USERID": os.getenv("WEBAPP_USERID"),
         "WEBAPP_PASSWORD": os.getenv("WEBAPP_PASSWORD"),
-        "DOWNLOAD_DIR": r"C:\\Users\\Rizki Aldiansyah\\Downloads"
+        "DOWNLOAD_DIR": r"C:\\Users\\Rizki Aldiansyah\\Downloads" #GANTI BAGIAN PATH PENGAMBILAN FILE=============================================================####
     }
     for key, value in config.items():
         if not value:
@@ -303,6 +304,16 @@ def get_chrome_driver(download_dir):
     options.add_argument("--disable-popup-blocking")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+
+    # SETUP FOLDER TEMPORARY KHUSUS UNTUK CHROME & CHROMEDRIVER
+    import tempfile
+    import getpass
+    user_temp_dir = os.path.join(tempfile.gettempdir(), f"zlogix_chrome_temp_{getpass.getuser()}")
+    os.makedirs(user_temp_dir, exist_ok=True)
+    options.add_argument(f'--user-data-dir={user_temp_dir}')
+    options.add_argument(f'--disk-cache-dir={user_temp_dir}')
+
+    # PREFERENCES DOWNLOAD
     options.add_experimental_option("prefs", {
         "download.default_directory": download_dir,
         "download.prompt_for_download": False,
@@ -311,6 +322,28 @@ def get_chrome_driver(download_dir):
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
     return driver
+
+# === Tambahkan fungsi berikut setelah get_chrome_driver ===
+def cleanup_chrome_temp():
+    import shutil
+    import getpass
+    import tempfile
+    user_temp_dir = os.path.join(tempfile.gettempdir(), f"zlogix_chrome_temp_{getpass.getuser()}")
+    if os.path.exists(user_temp_dir):
+        try:
+            shutil.rmtree(user_temp_dir)
+            print(f"Folder temporary Chrome telah dihapus: {user_temp_dir}")
+        except Exception as e:
+            print(f"Gagal menghapus folder temp: {e}")
+
+def schedule_cleanup_chrome_temp(interval_seconds=86400): # 86400 detik = 24 jam
+    import threading
+    def loop():
+        while True:
+            cleanup_chrome_temp()
+            time.sleep(interval_seconds)
+    threading.Thread(target=loop, daemon=True).start()
+# === END TAMBAHAN ===
 
 def zlogix_login(driver, wait, url, username, password):
     log("Membuka halaman login Z-Logix...")
@@ -533,5 +566,8 @@ def handle_run_and_schedule():
 
 # Assign button handler
 run_button.config(command=handle_run_and_schedule)
+
+# === Panggil penjadwalan pembersihan folder temp chrome di bawah ini ===
+schedule_cleanup_chrome_temp()  # <-- Tambahkan ini sebelum root.mainloop()
 
 root.mainloop()
