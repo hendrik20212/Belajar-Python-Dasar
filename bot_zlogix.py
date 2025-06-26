@@ -299,7 +299,7 @@ def save_user_to_env(zlogix_user, zlogix_pass, webapp_user, webapp_pass):
 # ==== MODULAR BOT LOGIC ====
 def get_chrome_driver(download_dir):
     options = Options()
-    options.add_argument("--headless=new")
+    options.add_argument("--headless=chrome")
     options.add_argument("--incognito")
     options.add_argument("--disable-popup-blocking")
     options.add_argument("--no-sandbox")
@@ -310,8 +310,7 @@ def get_chrome_driver(download_dir):
     import getpass
     user_temp_dir = os.path.join(tempfile.gettempdir(), f"zlogix_chrome_temp_{getpass.getuser()}")
     os.makedirs(user_temp_dir, exist_ok=True)
-    options.add_argument(f'--user-data-dir={user_temp_dir}')
-    options.add_argument(f'--disk-cache-dir={user_temp_dir}')
+    
 
     # PREFERENCES DOWNLOAD
     options.add_experimental_option("prefs", {
@@ -394,9 +393,7 @@ def parse_and_upload_to_firebase(xlsx_file_path, db):
     log("Memulai parsing & upload ke Firebase...")
     init_firebase()
     try:
-        # Baca tanpa header
         df_all = pd.read_excel(xlsx_file_path, header=None)
-        # Cari baris header secara dinamis (yang mengandung "Job No", case-insensitive)
         header_row_idx = None
         for i, row in df_all.iterrows():
             if any(str(cell).strip().lower() == "job no" for cell in row):
@@ -405,39 +402,35 @@ def parse_and_upload_to_firebase(xlsx_file_path, db):
         if header_row_idx is None:
             log("Header 'Job No' tidak ditemukan di file Excel.", level="ERROR")
             return
-
-        # Baca ulang dengan header di baris yang ditemukan
         df = pd.read_excel(xlsx_file_path, header=header_row_idx)
-        # Pastikan kolom ada
         required_cols = ["Job No", "Delivery Date", "Delivery Note", "Remark", "Plan Qty", "Status"]
         for col in required_cols:
             if col not in df.columns:
                 log(f"Kolom '{col}' tidak ditemukan di file Excel.", level="ERROR")
                 return
-
         upload_count = 0
         error_count = 0
         for idx, row in df.iterrows():
             jobNo = str(row.get("Job No", "")).strip()
+            status_raw = str(row.get("Status", "")).strip()
+            print(f"DEBUG: jobNo={jobNo}, status_raw='{status_raw}', status_lower='{status_raw.lower()}'")
             if not jobNo or any(c in jobNo for c in '.#$[]'):
-                continue # skip invalid jobNo
-
+                continue
             job = {
                 "jobNo": jobNo,
                 "deliveryDate": str(row.get("Delivery Date", "")).strip(),
                 "deliveryNote": str(row.get("Delivery Note", "")).strip(),
                 "remark": str(row.get("Remark", "")).strip(),
                 "qty": str(row.get("Plan Qty", "")).strip(),
-                "status": str(row.get("Status", "")).strip(),
-                # berikut 4 field agar kompatibel dengan frontend assignment
+                "status": status_raw,
                 "team": "",
                 "jobType": "",
                 "shift": "",
                 "teamName": ""
             }
-            # Tambahkan finishedAt jika status memenuhi syarat
-            if job["status"].lower() in ["packed", "loaded", "completed"]:
+            if status_raw.lower() in ["packed", "loaded", "completed"]:
                 job["finishedAt"] = datetime.utcnow().isoformat()
+                print(f"DEBUG: finishedAt assigned for jobNo={jobNo}")
             try:
                 db.reference(f'PhxOutboundJobs/{jobNo}').set(job)
                 upload_count += 1
