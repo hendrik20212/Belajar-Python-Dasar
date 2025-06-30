@@ -1,4 +1,3 @@
-# "C:\\Users\\Rizki Aldiansyah\\Downloads"
 import os
 import time
 import threading
@@ -147,18 +146,16 @@ log_text.pack(expand=True, fill='both', padx=10, pady=10)
 
 # ==== LOGGING ====
 def log(msg, level="INFO"):
-    # Konfigurasi warna tag setiap kali fungsi log dipanggil (aman, tapi lebih baik hanya sekali setelah log_text dibuat)
-    log_text.tag_config("info", foreground="#00ffff")       # Cyan/Light blue
-    log_text.tag_config("success", foreground="#00ff00")    # Green
-    log_text.tag_config("error", foreground="#ff3333")      # Red
-    log_text.tag_config("warning", foreground="#ffcc00")    # Yellow
-    log_text.tag_config("separator", foreground="#ffffff")  # White
+    log_text.tag_config("info", foreground="#00ffff")
+    log_text.tag_config("success", foreground="#00ff00")
+    log_text.tag_config("error", foreground="#ff3333")
+    log_text.tag_config("warning", foreground="#ffcc00")
+    log_text.tag_config("separator", foreground="#ffffff")
 
     timestamp = datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
     icon = "ℹ️"
     lower_msg = msg.lower()
 
-    # Tentukan tag warna sesuai level log
     if level == "SUCCESS":
         icon = "✅"
         tag = "success"
@@ -171,7 +168,6 @@ def log(msg, level="INFO"):
     else:
         tag = "info"
 
-    # Ikon tambahan berdasarkan isi pesan
     if "login" in lower_msg:
         icon = "🔐"
     elif "membuka halaman" in lower_msg or "navigasi" in lower_msg:
@@ -190,7 +186,6 @@ def log(msg, level="INFO"):
     log_text.config(state=tk.NORMAL)
     log_text.insert(tk.END, f"{timestamp} [{level}] {icon} {msg}\n", tag)
 
-    # Tambahkan separator setelah proses selesai
     if level == "SUCCESS" and "proses selesai" in lower_msg:
         log_text.insert(tk.END, "\n==============================================================================================\n\n", "separator")
         log_stats()
@@ -208,23 +203,20 @@ def log_stats():
     lines = table_str.splitlines()
     width = len(lines[0])
 
-    # Tag warna
-    log_text.tag_config("stat_line", foreground="#ff66cc")     # Pink baris grid
-    log_text.tag_config("stat_sukses", foreground="#00ff00")   # Hijau
-    log_text.tag_config("stat_error", foreground="#ff3333")    # Merah
-    log_text.tag_config("stat_uptime", foreground="#c586ff")   # Ungu
-    log_text.tag_config("stat_title", foreground="#ffffff")    # Judul putih
+    log_text.tag_config("stat_line", foreground="#ff66cc")
+    log_text.tag_config("stat_sukses", foreground="#00ff00")
+    log_text.tag_config("stat_error", foreground="#ff3333")
+    log_text.tag_config("stat_uptime", foreground="#c586ff")
+    log_text.tag_config("stat_title", foreground="#ffffff")
 
     log_text.config(state=tk.NORMAL)
 
-    # --- Judul ---
     title = " Statistic "
     title_pad = (width - len(title)) // 2
     log_text.insert(tk.END, lines[0] + "\n", "stat_line")
     log_text.insert(tk.END, "|" + " " * title_pad + title + " " * (width - len(title) - title_pad - 2) + "|\n", "stat_title")
     log_text.insert(tk.END, lines[0] + "\n", "stat_line")
 
-    # --- Cari header dan data secara dinamis ---
     header_line = None
     data_line = None
     header_found = False
@@ -236,7 +228,6 @@ def log_stats():
             data_line = line
             break
 
-    # --- Header (warna per kolom) ---
     header_parts = header_line.split("|")
     log_text.insert(tk.END, header_parts[0] + "|", "stat_line")
     log_text.insert(tk.END, header_parts[1], "stat_sukses")
@@ -246,7 +237,6 @@ def log_stats():
     log_text.insert(tk.END, header_parts[3], "stat_uptime")
     log_text.insert(tk.END, "|" + "\n", "stat_line")
 
-    # --- Garis tengah ---
     found_middle_line = False
     for l in lines:
         if "+" in l and found_middle_line is False:
@@ -256,7 +246,6 @@ def log_stats():
             log_text.insert(tk.END, l + "\n", "stat_line")
             break
 
-    # --- Data (warna per kolom) ---
     data_parts = data_line.split("|")
     log_text.insert(tk.END, data_parts[0] + "|", "stat_line")
     log_text.insert(tk.END, data_parts[1], "stat_sukses")
@@ -266,7 +255,6 @@ def log_stats():
     log_text.insert(tk.END, data_parts[3], "stat_uptime")
     log_text.insert(tk.END, "|" + "\n", "stat_line")
 
-    # --- Garis bawah dari tabulate (PENTING) ---
     log_text.insert(tk.END, lines[-1] + "\n", "stat_line")
     log_text.insert(tk.END, "\n==============================================================================================\n\n", "separator")
     log_text.config(state=tk.DISABLED)
@@ -281,7 +269,7 @@ def load_config():
         "WEBAPP_URL": os.getenv("WEBAPP_URL"),
         "WEBAPP_USERID": os.getenv("WEBAPP_USERID"),
         "WEBAPP_PASSWORD": os.getenv("WEBAPP_PASSWORD"),
-        "DOWNLOAD_DIR": r"C:\\Users\\Rizki Aldiansyah\\Downloads" #GANTI BAGIAN PATH PENGAMBILAN FILE=============================================================####
+        "DOWNLOAD_DIR": r"C:\\Users\\Administrator\\Downloads"
     }
     for key, value in config.items():
         if not value:
@@ -296,23 +284,21 @@ def save_user_to_env(zlogix_user, zlogix_pass, webapp_user, webapp_pass):
     set_key(env_path, "WEBAPP_PASSWORD", webapp_pass)
     load_dotenv(override=True)
 
-# ==== MODULAR BOT LOGIC ====
 def get_chrome_driver(download_dir):
     options = Options()
-    options.add_argument("--headless=chrome")
+    options.add_argument("--headless=new")
     options.add_argument("--incognito")
     options.add_argument("--disable-popup-blocking")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
-    # SETUP FOLDER TEMPORARY KHUSUS UNTUK CHROME & CHROMEDRIVER
     import tempfile
     import getpass
     user_temp_dir = os.path.join(tempfile.gettempdir(), f"zlogix_chrome_temp_{getpass.getuser()}")
     os.makedirs(user_temp_dir, exist_ok=True)
-    
+    options.add_argument(f'--user-data-dir={user_temp_dir}')
+    options.add_argument(f'--disk-cache-dir={user_temp_dir}')
 
-    # PREFERENCES DOWNLOAD
     options.add_experimental_option("prefs", {
         "download.default_directory": download_dir,
         "download.prompt_for_download": False,
@@ -322,7 +308,6 @@ def get_chrome_driver(download_dir):
     driver = webdriver.Chrome(service=service, options=options)
     return driver
 
-# === Tambahkan fungsi berikut setelah get_chrome_driver ===
 def cleanup_chrome_temp():
     import shutil
     import getpass
@@ -335,14 +320,12 @@ def cleanup_chrome_temp():
         except Exception as e:
             print(f"Gagal menghapus folder temp: {e}")
 
-def schedule_cleanup_chrome_temp(interval_seconds=86400): # 86400 detik = 24 jam
-    import threading
+def schedule_cleanup_chrome_temp(interval_seconds=86400):
     def loop():
         while True:
             cleanup_chrome_temp()
             time.sleep(interval_seconds)
     threading.Thread(target=loop, daemon=True).start()
-# === END TAMBAHAN ===
 
 def zlogix_login(driver, wait, url, username, password):
     log("Membuka halaman login Z-Logix...")
@@ -379,7 +362,6 @@ def zlogix_navigate_and_download(driver, wait, download_dir):
         f.write(response.content)
     log(f"Data source berhasil di-download: {file_path}")
 
-    # Konversi XLS ke XLSX
     xlsx_file_path = file_path.replace('.xls', '.xlsx')
     try:
         pe.save_book_as(file_name=file_path, dest_file_name=xlsx_file_path)
@@ -390,6 +372,8 @@ def zlogix_navigate_and_download(driver, wait, download_dir):
     return file_path
 
 def parse_and_upload_to_firebase(xlsx_file_path, db):
+    from datetime import timedelta, timezone
+    WIB = timezone(timedelta(hours=7))
     log("Memulai parsing & upload ke Firebase...")
     init_firebase()
     try:
@@ -402,37 +386,80 @@ def parse_and_upload_to_firebase(xlsx_file_path, db):
         if header_row_idx is None:
             log("Header 'Job No' tidak ditemukan di file Excel.", level="ERROR")
             return
+
         df = pd.read_excel(xlsx_file_path, header=header_row_idx)
-        required_cols = ["Job No", "Delivery Date", "Delivery Note", "Remark", "Plan Qty", "Status"]
-        for col in required_cols:
-            if col not in df.columns:
-                log(f"Kolom '{col}' tidak ditemukan di file Excel.", level="ERROR")
+        field_map = {
+            "jobNo": ["Job No", "Job No."],
+            "deliveryDate": ["ETD", "Delivery Date"],
+            "deliveryNote": ["Delivery Note No.", "Delivery Note"],
+            "remark": ["Ref No.", "Remark"],
+            "status": ["Status"],
+            "qty": ["BCNo", "Plan Qty"]
+        }
+        for opts in field_map.values():
+            if not any(col in df.columns for col in opts):
+                log(f"Kolom '{opts[0]}' tidak ditemukan di file Excel.", level="ERROR")
                 return
+
+        def get_val(row, opts):
+            for col in opts:
+                if col in row:
+                    return str(row[col]).strip()
+            return ""
+
         upload_count = 0
         error_count = 0
         for idx, row in df.iterrows():
-            jobNo = str(row.get("Job No", "")).strip()
-            status_raw = str(row.get("Status", "")).strip()
-            print(f"DEBUG: jobNo={jobNo}, status_raw='{status_raw}', status_lower='{status_raw.lower()}'")
+            jobNo = get_val(row, field_map["jobNo"])
             if not jobNo or any(c in jobNo for c in '.#$[]'):
                 continue
+
+            existing_job_ref = db.reference(f'PhxOutboundJobs/{jobNo}')
+            existing_job_data = existing_job_ref.get() or {}
+
+            delivery_date_raw = get_val(row, field_map["deliveryDate"])
+            delivery_date = ""
+            try:
+                if delivery_date_raw and delivery_date_raw.replace('.', '', 1).isdigit():
+                    date_float = float(delivery_date_raw)
+                    date = datetime(1899, 12, 30) + pd.to_timedelta(date_float, unit='D')
+                    delivery_date = date.strftime("%d-%b-%Y")
+                else:
+                    date = pd.to_datetime(delivery_date_raw, errors='coerce')
+                    if pd.notna(date):
+                        delivery_date = date.strftime("%d-%b-%Y")
+                    else:
+                        delivery_date = delivery_date_raw
+            except Exception:
+                delivery_date = delivery_date_raw
+
             job = {
                 "jobNo": jobNo,
-                "deliveryDate": str(row.get("Delivery Date", "")).strip(),
-                "deliveryNote": str(row.get("Delivery Note", "")).strip(),
-                "remark": str(row.get("Remark", "")).strip(),
-                "qty": str(row.get("Plan Qty", "")).strip(),
-                "status": status_raw,
-                "team": "",
-                "jobType": "",
-                "shift": "",
-                "teamName": ""
+                "deliveryDate": delivery_date,
+                "deliveryNote": get_val(row, field_map["deliveryNote"]),
+                "remark": get_val(row, field_map["remark"]),
+                "status": get_val(row, field_map["status"]),
+                "qty": get_val(row, field_map["qty"]),
+                "team": existing_job_data.get("team", ""),
+                "jobType": existing_job_data.get("jobType", ""),
+                "shift": existing_job_data.get("shift", ""),
+                "teamName": existing_job_data.get("teamName", "")
             }
-            if status_raw.lower() in ["packed", "loaded", "completed"]:
-                job["finishedAt"] = datetime.utcnow().isoformat()
-                print(f"DEBUG: finishedAt assigned for jobNo={jobNo}")
+
+            # finishAt: HH:MM WIB, hanya di-set sekali
+            finish_statuses = {"packed", "loaded", "completed"}
+            status_now = job["status"].strip().lower()
+            if status_now in finish_statuses:
+                if not existing_job_data.get("finishAt"):
+                    job["finishAt"] = datetime.now(WIB).strftime("%H:%M")
+                else:
+                    job["finishAt"] = existing_job_data["finishAt"]
+            else:
+                if "finishAt" in existing_job_data and existing_job_data["finishAt"]:
+                    job["finishAt"] = existing_job_data["finishAt"]
+
             try:
-                db.reference(f'PhxOutboundJobs/{jobNo}').set(job)
+                existing_job_ref.set(job)
                 upload_count += 1
             except Exception as e:
                 error_count += 1
@@ -440,32 +467,6 @@ def parse_and_upload_to_firebase(xlsx_file_path, db):
         log(f"Parsing & upload ke Firebase selesai. Berhasil: {upload_count}, Gagal: {error_count}", level="SUCCESS")
     except Exception as e:
         log(f"Gagal parsing/upload ke Firebase: {e}", level="ERROR")
-
-def webapp_login_and_upload(driver, wait, url, user, pw, file_path):
-    log("Membuka halaman Outbound Monitoring Control...")
-    driver.get(url)
-    wait.until(EC.presence_of_element_located((By.ID, "username"))).send_keys(user)
-    time.sleep(1)
-    driver.find_element(By.ID, "password").send_keys(pw)
-    time.sleep(1)
-    driver.find_element(By.ID, "loginBtn").click()
-    log("Login ke Outbound Monitoring Control, menunggu redirect...")
-    try:
-        wait.until(EC.element_to_be_clickable((By.ID, "modeZLogix"))).click()
-        time.sleep(1)
-        log("Mode Z-Logix dipilih.")
-    except Exception as e:
-        log("Gagal memilih mode Z-Logix.", level="ERROR")
-        log(f"Detail: {e}", level="ERROR")
-    try:
-        wait.until(EC.presence_of_element_located((By.ID, "fileInput"))).send_keys(file_path)
-        time.sleep(1)
-        wait.until(EC.element_to_be_clickable((By.ID, "uploadBtn"))).click()
-        time.sleep(1)
-        log("File diunggah ke web app.")
-    except Exception as e:
-        log("Gagal upload file!", level="ERROR")
-        log(f"Detail: {e}", level="ERROR")
 
 def delete_file(file_path):
     try:
@@ -505,7 +506,6 @@ def run_bot():
         file_path = zlogix_navigate_and_download(driver, wait, config["DOWNLOAD_DIR"])
         xlsx_file_path = file_path.replace('.xls', '.xlsx')
         parse_and_upload_to_firebase(xlsx_file_path, db)
-        webapp_login_and_upload(driver, wait, config["WEBAPP_URL"], config["WEBAPP_USERID"], config["WEBAPP_PASSWORD"], file_path)
         delete_file(file_path)
         if os.path.exists(xlsx_file_path):
             delete_file(xlsx_file_path)
@@ -519,7 +519,7 @@ def run_bot():
     finally:
         progress_bar.stop()
 
-def schedule_run(interval_minutes=5):
+def schedule_run(interval_minutes=2):
     def loop():
         countdown = interval_minutes * 60
         while True:
@@ -557,10 +557,6 @@ def handle_run_and_schedule():
 
     threading.Thread(target=lambda: [run_bot(), schedule_run()], daemon=True).start()
 
-# Assign button handler
 run_button.config(command=handle_run_and_schedule)
-
-# === Panggil penjadwalan pembersihan folder temp chrome di bawah ini ===
-schedule_cleanup_chrome_temp()  # <-- Tambahkan ini sebelum root.mainloop()
-
+schedule_cleanup_chrome_temp()
 root.mainloop()
