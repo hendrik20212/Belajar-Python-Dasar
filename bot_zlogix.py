@@ -1,3 +1,4 @@
+# C:\\Users\\Administrator\\Downloads
 import os
 import time
 import threading
@@ -269,7 +270,7 @@ def load_config():
         "WEBAPP_URL": os.getenv("WEBAPP_URL"),
         "WEBAPP_USERID": os.getenv("WEBAPP_USERID"),
         "WEBAPP_PASSWORD": os.getenv("WEBAPP_PASSWORD"),
-        "DOWNLOAD_DIR": r"C:\\Users\\Administrator\\Downloads"
+        "DOWNLOAD_DIR": r"C:\\Users\\Rizki Aldiansyah\\Downloads"
     }
     for key, value in config.items():
         if not value:
@@ -467,14 +468,11 @@ def parse_and_upload_to_firebase(xlsx_file_path, db):
             # finishAt: HH:MM WIB, hanya di-set sekali
             finish_statuses = {"packed", "loaded", "completed"}
             status_now = job["status"].strip().lower()
-            if status_now in finish_statuses:
-                if not existing_job_data.get("finishAt"):
-                    job["finishAt"] = datetime.now(WIB).strftime("%H:%M")
-                else:
-                    job["finishAt"] = existing_job_data["finishAt"]
-            else:
-                if "finishAt" in existing_job_data and existing_job_data["finishAt"]:
-                    job["finishAt"] = existing_job_data["finishAt"]
+            prev_finishAt = existing_job_data.get("finishAt", "")
+            if prev_finishAt:
+                job["finishAt"] = prev_finishAt
+            elif status_now in finish_statuses:
+                job["finishAt"] = datetime.now(WIB).strftime("%H:%M")
 
             try:
                 existing_job_ref.set(job)
