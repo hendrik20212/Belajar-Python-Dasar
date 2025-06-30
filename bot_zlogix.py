@@ -377,6 +377,7 @@ def parse_and_upload_to_firebase(xlsx_file_path, db):
     log("Memulai parsing & upload ke Firebase...")
     init_firebase()
     try:
+        import math
         df_all = pd.read_excel(xlsx_file_path, header=None)
         header_row_idx = None
         for i, row in df_all.iterrows():
@@ -404,15 +405,32 @@ def parse_and_upload_to_firebase(xlsx_file_path, db):
         def get_val(row, opts):
             for col in opts:
                 if col in row:
-                    return str(row[col]).strip()
+                    val = row[col]
+                    # Khusus remark, jika kosong/nan/None, return ""
+                    if col.lower() in ['remark', 'ref no.', 'ref no']:
+                        if pd.isna(val) or val is None or (isinstance(val, float) and math.isnan(val)):
+                            return ""
+                        return str(val).strip()
+                    # Umum
+                    if pd.isna(val) or val is None:
+                        return ""
+                    return str(val).strip()
             return ""
 
+        # --- Ambil seluruh jobNo lama dari database untuk sinkronisasi status ---
+        jobs_db_ref = db.reference("PhxOutboundJobs")
+        jobs_db_snapshot = jobs_db_ref.get() or {}
+        jobNo_db_list = list(jobs_db_snapshot.keys())
+
+        jobNo_new_list = []
         upload_count = 0
         error_count = 0
+
         for idx, row in df.iterrows():
             jobNo = get_val(row, field_map["jobNo"])
             if not jobNo or any(c in jobNo for c in '.#$[]'):
                 continue
+            jobNo_new_list.append(jobNo)
 
             existing_job_ref = db.reference(f'PhxOutboundJobs/{jobNo}')
             existing_job_data = existing_job_ref.get() or {}
@@ -464,7 +482,25 @@ def parse_and_upload_to_firebase(xlsx_file_path, db):
             except Exception as e:
                 error_count += 1
                 log(f"Gagal upload job {jobNo}: {e}", level="ERROR")
-        log(f"Parsing & upload ke Firebase selesai. Berhasil: {upload_count}, Gagal: {error_count}", level="SUCCESS")
+
+        # --- Sinkronisasi: Set status "Completed" untuk job lama yang tidak ada di file baru ---
+        update_missing_count = 0
+        update_missing_error = 0
+        jobNo_new_set = set(jobNo_new_list)
+        for jobNo in jobNo_db_list:
+            if jobNo not in jobNo_new_set:
+                try:
+                    jobs_db_ref.child(jobNo).update({"status": "Completed"})
+                    update_missing_count += 1
+                except Exception as e:
+                    update_missing_error += 1
+                    log(f"Gagal update status 'Completed' untuk jobNo {jobNo}: {e}", level="ERROR")
+
+        log(
+            f"Parsing & upload ke Firebase selesai. Berhasil: {upload_count}, Gagal: {error_count}. "
+            f"Job lama diubah status: {update_missing_count}, Error update: {update_missing_error}",
+            level="SUCCESS"
+        )
     except Exception as e:
         log(f"Gagal parsing/upload ke Firebase: {e}", level="ERROR")
 
